@@ -21,10 +21,21 @@ Static multipage site for **cwinformatics.com**. No build step, no framework, no
 
 Local preview: run `Preview CWinformatics Website.cmd` from the repository root, or serve this folder with any static file server.
 
+## Deployment (set up 2026-10-17)
+
+- **Hosting:** GitHub Pages from the public repo `Guy-C-JR/cwinformatics-site` (branch `main`, root). The repo contains a copy of this folder plus `CNAME` (`cwinformatics.com`) and `.nojekyll`. To deploy a change, copy this folder's files into a checkout of that repo and push to `main`.
+- **DNS (Squarespace Domains):** the "Squarespace Defaults" preset must be removed and replaced with custom records:
+  - `A @ 185.199.108.153`, `A @ 185.199.109.153`, `A @ 185.199.110.153`, `A @ 185.199.111.153`
+  - `CNAME www guy-c-jr.github.io`
+  - Keep the "Email Security" and "Squarespace Domain Connect" presets.
+- **HTTPS:** once DNS resolves, enable "Enforce HTTPS" in the repo's Pages settings (GitHub issues the certificate automatically; it can take up to an hour after DNS propagates).
+- **Contact form:** relayed by Web3Forms to guy@charleswakeinformatics.com. The access key lives in `WEB3FORMS_ACCESS_KEY` in `scripts/site.js`. Until it is set, the form refuses submissions with an honest message and never shows a success state.
+
 ## Blocking before launch
 
-- [ ] **Contact form delivery.** The form is wired to POST JSON (`name`, `email`, `organization`, `message`, `page`) to `CONTACT_ENDPOINT` in `scripts/site.js`. That constant is empty. Until it is set, submissions are refused with an honest inline message and **no success state is shown**. Connect a real endpoint (form service, serverless function, or your own API) that returns a 2xx on success, then set the constant. The honeypot field is `company_website`; drop any submission where it is non-empty.
-- [ ] **Hosting and domain.** Deploy the folder as the site root so that relative links (`styles/site.css`, `assets/...`) resolve. Canonical URLs and the `og:image` URL assume `https://cwinformatics.com/`.
+- [x] Web3Forms access key set in `scripts/site.js`.
+- [ ] Complete the DNS change above (requires Squarespace account re-authentication).
+- [ ] Turn on "Enforce HTTPS" in GitHub Pages after the certificate is issued.
 
 ## Business information intentionally left out
 

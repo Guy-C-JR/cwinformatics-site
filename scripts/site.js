@@ -103,9 +103,11 @@
   });
 
   /* ---------------- Contact form ----------------
-     Posts JSON to CONTACT_ENDPOINT. Until an endpoint is connected, submissions are
+     Submissions are relayed by Web3Forms (https://web3forms.com) to the address
+     registered with the access key below. Until a key is set, submissions are
      refused with an honest message instead of a fake success. See HANDOFF.md. */
-  var CONTACT_ENDPOINT = ""; // e.g. "https://api.example.com/contact" — set during handoff
+  var CONTACT_ENDPOINT = "https://api.web3forms.com/submit";
+  var WEB3FORMS_ACCESS_KEY = "4930a535-4202-4b29-9d63-5e533c37394e";
 
   var form = doc.getElementById("contact-form");
   if (form) {
@@ -167,18 +169,26 @@
       if (!ok) { firstBad.focus(); showStatus("error", "Please check the highlighted fields and try again."); return; }
       var hp = form.querySelector('[name="company_website"]');
       if (hp && hp.value) return;
-      if (!CONTACT_ENDPOINT) {
+      if (!CONTACT_ENDPOINT || !WEB3FORMS_ACCESS_KEY) {
         showStatus("error", "This form isn't connected to a delivery service yet, so your message was not sent. Please try again later.");
         return;
       }
       var payload = {
+        access_key: WEB3FORMS_ACCESS_KEY,
+        subject: "Website inquiry from " + fields.organization.value.trim(),
+        from_name: "cwinformatics.com contact form",
         name: fields.name.value.trim(), email: fields.email.value.trim(),
-        organization: fields.organization.value.trim(), message: fields.message.value.trim(), page: location.href
+        organization: fields.organization.value.trim(), message: fields.message.value.trim(),
+        page: location.href, botcheck: ""
       };
       setLoading(true);
       fetch(CONTACT_ENDPOINT, { method: "POST", headers: { "Content-Type": "application/json", "Accept": "application/json" }, body: JSON.stringify(payload) })
         .then(function (res) {
-          if (!res.ok) throw new Error("HTTP " + res.status);
+          return res.json().then(function (data) {
+            if (!res.ok || !data || data.success !== true) throw new Error("Relay rejected submission");
+          });
+        })
+        .then(function () {
           form.hidden = true;
           if (success) { success.classList.add("show"); success.setAttribute("tabindex", "-1"); success.focus(); }
         })
